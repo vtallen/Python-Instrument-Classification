@@ -1,0 +1,22 @@
+violin
+trumpet
+tuba
+flute
+Enabled Instruments: ['violin', 'trumpet', 'tuba', 'flute']
+Datasets: ['arff/clean.arff']
+Filename: arff/clean.arff
+Enabled instruments: ['violin', 'trumpet', 'tuba', 'flute']
+=================================
+
+Confusion matrix:
+=================================
+         flute  trumpet   tuba  violin
+flute    26587     2813    727    6792
+trumpet   3429    14009   1091    7691
+tuba       447     1198  15990    1048
+violin    5246     5024    961   68564
+
+Accuracy score:
+=================================
+0.7743616079991585
+

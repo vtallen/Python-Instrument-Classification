@@ -1,0 +1,14 @@
+python3 gen_model.py
+Confusion matrix:
+=================================
+           AG  flute  piano  trumpet  tuba  violin
+AG       2454    110    827       70   592     225
+flute      84   2128    220      408    37     895
+piano     784    227   1384       64   250     442
+trumpet    42    393     60      765    77     832
+tuba      649     36    209       58   854     108
+violin    192    947    382      843    87    6335
+
+Accuracy score:
+=================================
+0.5783132530120482

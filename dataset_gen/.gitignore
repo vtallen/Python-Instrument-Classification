@@ -1,0 +1,12 @@
+archive/
+download_audio/
+full_wav/
+splitaudio_*/
+normalized_*/
+archivearff/
+ffmpeg.log
+librosa.log
+testarff/
+*.arff
+arff/
+.idea/
