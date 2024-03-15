@@ -2,8 +2,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import confusion_matrix, accuracy_score
-from sklearn.utils import estimator_html_repr
 from scipy.io import arff
+
 import pickle
 import os
 import sys
@@ -37,6 +37,7 @@ def train_model(arff_filename, enabled_instruments = ['all']):
 
     classifier = DecisionTreeClassifier(random_state=0, min_samples_leaf=25)
     # classifier = DecisionTreeClassifier(criterion='entropy', random_state=1029, min_samples_leaf=25)
+
     classifier.fit(X_train, y_train)
 
     y_predict = classifier.predict(X_test)
@@ -68,6 +69,13 @@ def train_model(arff_filename, enabled_instruments = ['all']):
 
     with open(MODELS_DIR + '/' + name + "Model.pkl", 'wb') as f:
         pickle.dump(classifier, f)
+    
+    # Create a bytestring of the model so that it can be directly embedded into a script
+    # Using w instaed of wb to write it as something I can just dump into another script straight from the txt file 
+    with open(MODELS_DIR + '/' + name + 'ByteStr' + '.txt', 'w') as f:
+        byte_str = pickle.dumps(classifier)
+        f.write('MODEL=')
+        f.write(str(byte_str))
     
 __USAGE__ = 'python3 gen_model.py <datasets> <outdir> ... - where <datasets> is a directory containing arff files and <outdir> is where to save models. ... is a space seperated list of the instruments to enable in the model'
 

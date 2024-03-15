@@ -2,21 +2,24 @@ violin
 trumpet
 tuba
 flute
-Enabled Instruments: ['violin', 'trumpet', 'tuba', 'flute']
-Datasets: ['arff/clean.arff']
-Filename: arff/clean.arff
-Enabled instruments: ['violin', 'trumpet', 'tuba', 'flute']
+chello
+saxophone
+Datasets: ['arff/0.1datasetRaw.arff']
+Filename: arff/0.1datasetRaw.arff
+Enabled instruments: ['violin', 'trumpet', 'tuba', 'flute', 'chello', 'saxophone']
 =================================
 
 Confusion matrix:
 =================================
-         flute  trumpet   tuba  violin
-flute    26587     2813    727    6792
-trumpet   3429    14009   1091    7691
-tuba       447     1198  15990    1048
-violin    5246     5024    961   68564
+           chello  flute  saxophone  trumpet   tuba  violin
+chello      70310   1589       1023     3274   4833    8823
+flute        3380  23762        451     3590    285    5548
+saxophone    3040    681       3214     1553    985    3310
+trumpet      3494   3384        704    24693   1185   10073
+tuba         6100    107        531     1288  20360     618
+violin       7402   3580       1116     7673    582   75689
 
 Accuracy score:
 =================================
-0.7743616079991585
+0.7073548973169387
 

@@ -1,24 +1,42 @@
-MAX_THREADS := 10 
-AUDIO_FILE_LEN := 0.1
+# Directory/file variables
+# Where to store the audio files from YouTube
 DOWNLOAD_DIR := 'download_audio'
+# Where to store the full length wav files converted from the youtube videos
 FULL_WAV_DIR := 'full_wav'
+# Where to place the dataset file created
 ARFF_OUT_DIR := 'arff'
+# File containing tagged YouTube links
+LINKS_CSV_NAME := 'solo_instrument_video_links.csv'
+
+# For paralellized scripts, this is the max number of Python instances that will be launched
+MAX_THREADS := 10 
+# The max number of concurent YouTube download streams allowed 
+MAX_DL_STREAMS := 5 
+
+# The length for each individual sample obtained by splitting the full audio files
+AUDIO_FILE_LEN := 0.1
+
+# The number of strongest amplitude harmonics that will be included in the arff files
 NUM_HARMONICS := 32
+
+# The db level to bring each sample up/down to 
 NORMALIZATION_DBFS := -20
 
-all: normalize arff cleandata
+# This target forces a full rebuild every time. I am handling skipping un-needed steps manually
+.PHONY: download convert split normalize arff cleandata
+
+all: download convert split normalize arff cleandata
 	@echo "AUDIO_FILE_LEN: $(AUDIO_FILE_LEN)"
 	@echo "DONE!"
 
 download:
-ifeq ("$(wildcard $(DOWNLOAD_DIR))", "")
-	@echo "Audio download directory does not exist. Downloading audio"
-	# Perform download...
-	python3 audiodl.py solo_instrument_video_links.csv $(DOWNLOAD_DIR) 5
+ifeq ($(wildcard $(DOWNLOAD_DIR)),)
+		@echo "Audio download directory does not exist. Downloading audio"
+		# Perform download
+		python3 audiodl.py $(LINKS_CSV_NAME) $(DOWNLOAD_DIR) $(MAX_DL_STREAMS) 
 else
-	@echo "Skipping audio download because directory already exists."
+  	@echo "Skipping audio download because directory already exists."
 endif
-
 
 convert:
 ifeq ("$(wildcard $(FULL_WAV_DIR))", "")
@@ -52,4 +70,9 @@ clean:
 	rm -r -f normalized_*
 	rm -f ffmpeg.log
 	rm -f librosa.log
+
+# Contiuation of the targets forcing rebuild
+FORCE_REBUILD := $(shell date +%s)
+.PHONY: force_rebuild
+force_rebuild: ;
 

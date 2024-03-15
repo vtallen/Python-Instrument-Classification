@@ -1,0 +1,11 @@
+{
+  "executionEnvironments": {
+    "default": {
+      "extraPaths": [
+        "./dataseet_gen",
+        "./model_gen",
+        "./cli_tool"
+      ]
+    }
+  }
+}
