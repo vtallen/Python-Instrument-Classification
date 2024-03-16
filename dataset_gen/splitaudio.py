@@ -27,15 +27,40 @@ import librosa
 import soundfile as sf
 import tqdm
 
-split_audio_cmd = 'python3 splitaudio.py -s'
+'''
+* ********************************************************************************************** *
+*                                                                                                *
+* Name:             split_all_files                                                              *
+*                                                                                                *
+* Parameters:       str[] filenames   - All the audio files to be split                          *
+*                   str outpath_start - What the output directory name should start with. The    *
+*                                       length of the split gets appended to this                *
+*                   int seconds       - The length each split audio file should be               *
+*                   int max_processes - The maximum number of subprocesses allowed to exist      *
+*                                                                                                *
+* Purpose:         Takes in a list of audio filenames, and splits each of those files into       *
+*                  shorter files of length seconds. Subprocess is used to multithread the process*
+*                                                                                                *
+* ********************************************************************************************** *
+'''
+def split_all_files(filenames, outpath_start, seconds, max_processes):
+    split_audio_cmd = 'python3 splitaudio.py -s'
+    # Constructs the final output path
+    outpath = outpath_start + str(seconds) + '/' 
 
-def split_all_files(filenames, outpath, seconds, max_processes):
+   # Make the output Directory if it does not exist
+    if not os.path.exists(outpath):
+        os.makedirs(outpath, exist_ok=True)
+    
+    # This variable is appended to each command, it redirects all output of the command into a log file
+    # Otherwise, the screen gets clogged with librosa's output that we do not care about
     output_log_cmd = '>> librosa.log 2>&1'
     processes = []
     commands = []
     
+    # Create all of the commands
     for filename in filenames:
-        commands.append(split_audio_cmd + ' ' + filename + ' ' + str(seconds) + ' ' + outpath + str(seconds) + '/' + output_log_cmd)
+        commands.append(split_audio_cmd + ' ' + filename + ' ' + str(seconds) + ' ' + outpath + output_log_cmd)
     
     num_commands = len(commands)
     conversion_num = 0
@@ -43,10 +68,10 @@ def split_all_files(filenames, outpath, seconds, max_processes):
     pbar = tqdm.tqdm(desc=str(seconds) + ' second split',total=num_commands);
 
     while commands:
-        while len(processes) < max_processes and commands:
+        while len(processes) < int(max_processes) and commands:
             processes.append(subprocess.Popen(commands.pop(), shell=True))
 
-        completed_processes = []     
+        completed_processes = []    
         for process in processes:
             if process.poll() is not None:
                 completed_processes.append(process)
@@ -57,11 +82,22 @@ def split_all_files(filenames, outpath, seconds, max_processes):
         for process in completed_processes:
             processes.remove(process) 
 
+'''
+* ********************************************************************************************** *
+*                                                                                                *
+* Name:             split_audiofile                                                              *
+*                                                                                                *
+* Parameters:       str filename    - The audio file to be split                                 *
+*                   int seconds     - The length each split audio file should be                 *
+*                   str outdir      - The directory to place the final file in. Assumes it       *
+*                                     already exists                                             *
+*                                                                                                *
+* Purpose:          Splits the given audio file into shorter files of length seconds             * 
+*                                                                                                *
+* ********************************************************************************************** *
+'''
 def split_audiofile(filename, seconds, outdir):
-    # Make the output Directory if it does not exist
-    if not os.path.exists(outdir):
-        os.mkdir(outdir)
-
+    
     # Gets the filename into a path and a filename
     split_filename = os.path.split(filename)
 
@@ -80,22 +116,6 @@ def split_audiofile(filename, seconds, outdir):
         noext = split_filename[1].split('.')
 
         sf.write(outdir + noext[0] +  '_' + str(fileno) + '.' +noext[1], newdata, samplerate)
-        # sf.write(outdir + '/' + noext[0] +  '_' + str(fileno) + '.' +noext[1], newdata, samplerate)
-
-def get_audio_files(folder_path, valid_extensions):
-    # List to store valid files
-    valid_files = []
-
-    # Iterate through all files in the folder
-    for file_name in os.listdir(folder_path):
-        # Get file extension
-        _, extension = os.path.splitext(file_name)
-        # Check if the extension is in the valid extensions list
-        if extension.lower() in valid_extensions:
-            # If it is, append the file path to the list
-            valid_files.append(os.path.join(folder_path, file_name))
-
-    return valid_files
 
 if __name__ == "__main__":
     argv = sys.argv
@@ -121,6 +141,4 @@ if __name__ == "__main__":
         valid_files.extend(mp4)
         
         split_all_files(valid_files, argv[3], float(argv[2]), int(argv[4]))
-
-        
 

@@ -9,7 +9,7 @@ ARFF_OUT_DIR := 'arff'
 LINKS_CSV_NAME := 'solo_instrument_video_links.csv'
 
 # For paralellized scripts, this is the max number of Python instances that will be launched
-MAX_THREADS := 10 
+MAX_THREADS := 12 
 # The max number of concurent YouTube download streams allowed 
 MAX_DL_STREAMS := 5 
 
@@ -21,6 +21,8 @@ NUM_HARMONICS := 32
 
 # The db level to bring each sample up/down to 
 NORMALIZATION_DBFS := -20
+
+SPLIT_DIR := splitaudio_$(AUDIO_FILE_LEN)/
 
 # This target forces a full rebuild every time. I am handling skipping un-needed steps manually
 .PHONY: download convert split normalize arff sanitizedata 
@@ -45,9 +47,7 @@ else
 	@echo "Directory $(FULL_WAV_DIR) exists. Skipping target convert."
 endif
 
-
 split:
-	SPLIT_DIR := "splitaudio_$(AUDIO_FILE_LEN)"
 ifeq ($(wildcard $(SPLIT_DIR)),)
 	@echo "Directory $(SPLIT_DIR) does not exist, splitting files."
 	python3 splitaudio.py $(FULL_WAV_DIR) $(AUDIO_FILE_LEN) splitaudio_ $(MAX_THREADS) 
@@ -89,4 +89,3 @@ clean:
 FORCE_REBUILD := $(shell date +%s)
 .PHONY: force_rebuild
 force_rebuild: ;
-
