@@ -17,7 +17,7 @@ from converttowav import convert_to_wav #pyright: ignore
 from splitaudio import split_audiofile # pyright: ignore 
 from normalizedb import normalize_audio #pyright:ignore 
 from extractFreqARFF import create_arff # pyright: ignore 
-from cleandata import clean_file
+from cleandata import clean_file #pyright : ignore
 
 TEMP_DIR = 'audiotmp/'
 SPLIT_LEN = 0.1

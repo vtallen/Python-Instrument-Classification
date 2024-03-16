@@ -29,11 +29,21 @@ import os
 import sys
 import subprocess
 
-def download_video(link, instrument, outdir):
-    # Make the output Directory if it does not exist
-    if not os.path.exists(outdir):
-        os.mkdir(outdir)
-
+'''
+* ********************************************************************************************** *
+*                                                                                                *
+* Name:             download_audio                                                               *
+*                                                                                                *
+* Parameters:       str link - YouTube link to download audio for                                *
+*                   str instrument - The instrument contained within the audio. Used to tag files*
+*                   str outdir - The folder to place the download file in                        *
+*                                                                                                *
+* Purpose:          Downloads the audio of a YouTube video, and tags the filename with the passed*
+*                   in instrument name                                                           *
+*                                                                                                *
+* ********************************************************************************************** *
+'''
+def download_audio(link, instrument, outdir):
     try: # Catches an error where a video is age restricted and needs a logged in account
         yt = YouTube(link)
         # grab only audio files
@@ -41,12 +51,32 @@ def download_video(link, instrument, outdir):
         #print('Downloading:', row[0], video.title) #type: ignore
         
         outfilename = instrument + '_' + base64.urlsafe_b64encode(video.title.encode()).decode('UTF-8') #type: ignore 
-        outfile = video.download(filename=outfilename + '.mp4', output_path=outdir) #type: ignore 
-
+        video.download(filename=outfilename + '.mp4', output_path=outdir) #type: ignore 
     except:
-        print('Unable to download - ' +  link)
+        print('Failed to download ', link)
 
-def download_videos(csv, outdir, max_processes):
+'''
+* ********************************************************************************************** *
+*                                                                                                *
+* Name:             download_audios                                                              *
+*                                                                                                *
+* Parameters:       csv.reader csv    - csv containg 2 columns: Instrument, the tagged instrument*
+*                                       and Link, the YouTube link                               *
+*                   str outdir        - The folder to place the download file in                 *
+*                   int max_processes - The maximum number of subprocesses allowed to exist      *
+*                                                                                                *
+* Purpose:          Downloads the audio of all YouTube videos in the csv, then tags all of their *
+*                   filenames.                                                                   *
+*                                                                                                *
+*                   Filenames are in the format instrument_title.mp4 where title is a BASE64     *
+*                   encoded string. This is done to ensure it is a valid filename and is unique  *
+*                                                                                                *
+*                   Multithreaded with subprocess                                                *
+*                                                                                                *
+* ********************************************************************************************** *
+'''
+def download_audios(csv, outdir, max_processes):
+
     dl_cmd = 'python3 audiodl.py -s'
     # Make the output Directory if it does not exist
     if not os.path.exists(outdir):
@@ -88,7 +118,7 @@ if __name__ == "__main__":
     
     # Single download case 
     if argv[1] == '-s':
-        download_video(argv[2], argv[3], argv[4])
+        download_audio(argv[2], argv[3], argv[4])
     elif argc == 4:
         infile = open(argv[1], 'r')
         incsv = csv.reader(infile, delimiter=',', quotechar='"')
@@ -96,38 +126,8 @@ if __name__ == "__main__":
         inheader = incsv.__next__();
         # inst_i = inheader.index('Instrument')
         # link_i = inheader.index('Link')
-        download_videos(incsv, argv[2], int(argv[3]))
+        download_audios(incsv, argv[2], int(argv[3]))
 
         infile.close()
     else:
         print(__USAGE__)
-    # # Check command formatting
-    # if argc != 3:
-    #     print('ERROR: Incorrect arguments')
-    #     print('USAGE:')
-    #     print('\taudl.py <links_csv> <output_dir>')
-    #     sys.exit(1) 
-
-    # outdir = argv[2]
-    # 
-    # # Make the output Directory if it does not exist
-    # if not os.path.exists(outdir):
-    #     os.mkdir(outdir)
-
-    # csvfilename = argv[1] 
-
-                
-    # for row in tqdm.tqdm(incsv, desc='Downloading audio files'):
-    #     try: # Catches an error where a video is age restricted and needs a logged in account
-    #         yt = YouTube(row[link_i])
-    #         # grab only audio files
-    #         video = yt.streams.filter(only_audio=True, file_extension='mp4').first()
-    #         #print('Downloading:', row[0], video.title) #type: ignore
-    #         
-    #         outfilename = row[inst_i] + '_' + base64.urlsafe_b64encode(video.title.encode()).decode('UTF-8') #type: ignore 
-    #         outfile = video.download(filename=outfilename + '.mp4', output_path=outdir) #type: ignore 
-
-    #     except:
-    #         print('Unable to download - ' +  row[1])
-    
-    # print('Finished downloading to', outdir)

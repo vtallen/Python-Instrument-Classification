@@ -1,6 +1,6 @@
 # Directory/file variables
 # Where to store the audio files from YouTube
-DOWNLOAD_DIR := 'download_audio'
+DOWNLOAD_DIR := download_audio/
 # Where to store the full length wav files converted from the youtube videos
 FULL_WAV_DIR := full_wav/
 # Where to place the dataset file created
