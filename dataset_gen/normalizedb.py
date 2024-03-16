@@ -1,3 +1,28 @@
+'''
+**************************************************************************************************
+* Filename:     normalizedb.py                                                                   *
+*                                                                                                *
+* Description:  Brings up the average dbfs of all samples in a directory to the target_dBFS.     *
+*               This aims to make it easier to cross compare samples for the decision tree. I    *
+*               need to do some more research to see if this is actually helping or if I need to *
+*               do it a different way. Doing this did give me a slight bump in accuracy when     *
+*               running decision trees in Weka                                                   *
+*                                                                                                *
+* Usage:       python3 normalizedb.py -s <dBFS> <filename> <outdir>                              *
+*                   -s          - Flag to process a single file                                  * 
+*                   <dBFS>      - The target db level                                            *
+*                   <filename>  - The file to normalize                                          * 
+*                   <outdir>    - Where to place the file                                        *
+*                                                                                                *
+*              python3 normalizedb.py -m <dBFS> <indir> <outdir> <maxprocesses>                  *
+*                   -m              - Flag to prcoess a whole dir of files                       *
+*                   <indir>         - The directory containging files to normalize               *
+*                   <dBFS>          - The target db level                                        *
+*                   <outdir>        - Where to place the file                                    *
+*                   <max_processes> - The max number of subprocesses allowed to spawn            *
+**************************************************************************************************
+'''
+
 import os
 import glob
 import subprocess
@@ -6,20 +31,35 @@ import sys
 from pydub import AudioSegment, effects
 import tqdm
 
+# TODO : Delete once the normalize_audio method is confirmed working
 def match_target_amplitude(sound, target_dBFS):
     change_in_dBFS = target_dBFS - sound.dBFS
     return sound.apply_gain(change_in_dBFS)
 
-# Function to normalize audio file
-def normalize_audio(file_path, out_folder, target_dBFS=-20):
-    split_file_path = os.path.split(file_path)
+'''
+* ********************************************************************************************** *
+*                                                                                                *
+* Name:             normalize_audio                                                              *
+*                                                                                                *
+* Parameters:       str file_path     - The file to be normalized                                *
+*                   str outpath       - The path to place converted files in                     *
+*                   int target_dBFS   - The target db level                                      *
+*                                                                                                *
+* Purpose:          Normalizes the db level of an audio file using pydub                         * 
+*                                                                                                *
+* ********************************************************************************************** *
+'''
+def normalize_audio(filename, outpath, target_dBFS=-20):
+    split_file_path = os.path.split(filename)
     noext = split_file_path[1].split('.')
 
-    sound = AudioSegment.from_file(file_path) # Load the audio file
-    # change_in_dBFS = target_dBFS - sound.dBFS # Determine how much to bring the dbs up
+    sound = AudioSegment.from_file(filename) # Load the audio file
+    change_in_dBFS = target_dBFS - sound.dBFS # Determine how much to bring the dbs up
     # normalized_sound = sound + change_in_dBFS # Adjust the 
-    normalized_sound = match_target_amplitude(sound, target_dBFS)
-    normalized_sound.export(out_folder + '/' + noext[0] + '_norm.' + noext[1], format='wav')
+    normalized_sound = sound.apply_gain(change_in_dBFS)
+    # normalized_sound = match_target_amplitude(sound, target_dBFS)
+    normalized_sound.export(outpath +  noext[0] + '_norm.' + noext[1], format='wav')
+    
 
 __USAGE__ = \
         'python3 normalizedb.py -s <dBFS> <filename> <outdir> - normalize the given wav file\n'\
@@ -36,7 +76,7 @@ if __name__ == "__main__":
             os.mkdir(argv[4])
         
         norm_cmd = 'python3 normalizedb.py -s ' + argv[2] + ' '
-        filenames = glob.glob(argv[3] + '/*.wav')
+        filenames = glob.glob(argv[3] + '*.wav')
 
         commands = []
         

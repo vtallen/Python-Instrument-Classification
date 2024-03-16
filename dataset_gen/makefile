@@ -60,7 +60,7 @@ normalize:
 
 ifeq ($(wildcard $(NORM_DIR)),)
 	@echo "Directory $(NORM_DIR) does not exist, normalizing."
-	python3 normalizedb.py -m $(NORMALIZATION_DBFS) splitaudio_$(AUDIO_FILE_LEN) normalized_$(AUDIO_FILE_LEN) $(MAX_THREADS) 
+	python3 normalizedb.py -m $(NORMALIZATION_DBFS) splitaudio_$(AUDIO_FILE_LEN)/ normalized_$(AUDIO_FILE_LEN)/ $(MAX_THREADS) 
 else
 	@echo "Directory $(NORM_DIR) exists. Skipping target normalize."
 endif
