@@ -17,7 +17,7 @@ from converttowav import convert_to_wav #pyright: ignore
 from splitaudio import split_audiofile # pyright: ignore 
 from normalizedb import normalize_audio #pyright:ignore 
 from extractFreqARFF import create_arff # pyright: ignore 
-from cleandata import clean_file #pyright : ignore
+from cleandata import clean_file # pyright : ignore
 
 TEMP_DIR = 'audiotmp/'
 SPLIT_LEN = 0.1
@@ -63,6 +63,8 @@ if __name__ == "__main__":
         audio_filename = argv[3]
 
         wav_filename = convert_to_wav(audio_filename, WAV_DIR) 
+        os.makedirs(SPLIT_DIR, exist_ok=True)
+
         split_audiofile(wav_filename, SPLIT_LEN, SPLIT_DIR)
         
         filenames = glob.glob(SPLIT_DIR + '/*.wav')

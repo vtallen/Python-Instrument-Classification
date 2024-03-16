@@ -97,7 +97,6 @@ def split_all_files(filenames, outpath_start, seconds, max_processes):
 * ********************************************************************************************** *
 '''
 def split_audiofile(filename, seconds, outdir):
-    
     # Gets the filename into a path and a filename
     split_filename = os.path.split(filename)
 
@@ -115,7 +114,7 @@ def split_audiofile(filename, seconds, outdir):
         # The filename split into
         noext = split_filename[1].split('.')
 
-        sf.write(outdir + noext[0] +  '_' + str(fileno) + '.' +noext[1], newdata, samplerate)
+        sf.write(outdir + noext[0] +  '_' + str(fileno) + '.' + noext[1], newdata, samplerate)
 
 if __name__ == "__main__":
     argv = sys.argv
