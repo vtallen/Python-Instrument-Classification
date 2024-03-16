@@ -10,3 +10,5 @@ testarff/
 *.arff
 arff/
 .idea/
+__pycache__/
+

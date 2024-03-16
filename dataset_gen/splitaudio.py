@@ -35,7 +35,7 @@ def split_all_files(filenames, outpath, seconds, max_processes):
     commands = []
     
     for filename in filenames:
-        commands.append(split_audio_cmd + ' ' + filename + ' ' + str(seconds) + ' ' + outpath + str(seconds) + output_log_cmd)
+        commands.append(split_audio_cmd + ' ' + filename + ' ' + str(seconds) + ' ' + outpath + str(seconds) + '/' + output_log_cmd)
     
     num_commands = len(commands)
     conversion_num = 0
@@ -79,7 +79,8 @@ def split_audiofile(filename, seconds, outdir):
         # The filename split into
         noext = split_filename[1].split('.')
 
-        sf.write(outdir + '/' + noext[0] +  '_' + str(fileno) + '.' +noext[1], newdata, samplerate)
+        sf.write(outdir + noext[0] +  '_' + str(fileno) + '.' +noext[1], newdata, samplerate)
+        # sf.write(outdir + '/' + noext[0] +  '_' + str(fileno) + '.' +noext[1], newdata, samplerate)
 
 def get_audio_files(folder_path, valid_extensions):
     # List to store valid files
@@ -110,9 +111,9 @@ if __name__ == "__main__":
     if argv[1] == '-s':
         split_audiofile(argv[2], float(argv[3]), argv[4])
     else:
-        wavs = glob.glob(argv[1] + '/*.wav')
-        mp3 = glob.glob(argv[1] + '/*.mp3')
-        mp4 = glob.glob(argv[1] + '/*.mp4')
+        wavs = glob.glob(argv[1] + '*.wav')
+        mp3 = glob.glob(argv[1] + '*.mp3')
+        mp4 = glob.glob(argv[1] + '*.mp4')
         
         valid_files = []
         valid_files.extend(wavs)

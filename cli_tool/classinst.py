@@ -22,7 +22,7 @@ from cleandata import clean_file
 TEMP_DIR = 'audiotmp/'
 SPLIT_LEN = 0.1
 WAV_DIR = TEMP_DIR + 'wav/'
-SPLIT_DIR = TEMP_DIR + 'split'
+SPLIT_DIR = TEMP_DIR + 'split/'
 NORMALIZE_DIR = TEMP_DIR + 'normalized/'
 ARFF_DIR = TEMP_DIR + 'arff/'
 NORMALIZE_DBFS = -20
