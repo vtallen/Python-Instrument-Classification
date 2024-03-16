@@ -4,6 +4,7 @@ import pickle
 import glob
 from statistics import mode
 import shutil
+import warnings
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -28,8 +29,6 @@ ARFF_DIR = TEMP_DIR + 'arff/'
 NORMALIZE_DBFS = -20
 NUM_HARMONICS = 32
 
-__USAGE__ = 'python3 classinst.py <audiofile>'\
-        'python3 classinst.py -m <model.pkl> <audiofile>'
 
 def predict(model, arff_filename):
     data, meta = arff.loadarff(arff_filename)
@@ -54,6 +53,9 @@ def predict(model, arff_filename):
     #     print(inst)
 
 
+__USAGE__ = 'python3 classinst.py <audiofile>'\
+        'python3 classinst.py -m <model.pkl> <audiofile>'
+
 if __name__ == "__main__":
     argv = sys.argv
     argc = len(argv)
@@ -72,11 +74,13 @@ if __name__ == "__main__":
         filenames = glob.glob(SPLIT_DIR + '/*.wav')
         os.makedirs(NORMALIZE_DIR, exist_ok=True)
         for filename in filenames:
-            normalize_audio(filename, NORMALIZE_DIR[:-1], NORMALIZE_DBFS)
+            normalize_audio(filename, NORMALIZE_DIR, NORMALIZE_DBFS)
         
         # Analyze the audio file
         os.makedirs(ARFF_DIR, exist_ok=True) 
-        create_arff(NORMALIZE_DIR, NUM_HARMONICS, 'dataset', ARFF_DIR) 
+
+        with warnings.catch_warnings(action="ignore"):
+            create_arff(NORMALIZE_DIR, NUM_HARMONICS, 'dataset', ARFF_DIR) 
         
         # Clean up the arff file
         clean_file(ARFF_DIR + 'datasetRaw.arff', ARFF_DIR + 'datasetRaw.arff')

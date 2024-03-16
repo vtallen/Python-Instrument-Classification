@@ -89,7 +89,8 @@ def convert_to_wav(filename, outpath):
     
     outfilename = outpath + noext[0] + '.wav'
 
-    cmd = 'ffmpeg -i ' + filename + ' ' + outfilename 
+    output_log_cmd = '>> ffmpeg.log 2>&1'
+    cmd = 'ffmpeg -i ' + filename + ' ' + outfilename + '>>' + outpath + 'ffmpeg.log 2>&1'
     
     convertpros = subprocess.Popen(cmd, shell=True)
 

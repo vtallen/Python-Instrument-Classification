@@ -108,7 +108,6 @@ def wav2arff(fpath, openarffcsv, rawarffcsv, number_harmonics):
 # Allows me to import it
 # TODO: FIX REPEAT LATER, this is just a hacky solution for now
 def create_arff(audiofolder, number_harmonics, outarff_filename_starter, outdir):
-    print('CREATING ARFF')
     WavPathsList = glob.glob(audiofolder + '*.wav')
 
     openarfffile = open(outdir + outarff_filename_starter + 'Normalized.arff', 'w',
