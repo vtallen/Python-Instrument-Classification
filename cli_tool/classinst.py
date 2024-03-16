@@ -61,8 +61,10 @@ if __name__ == "__main__":
     if argc == 4:
         model_filename = argv[2]
         audio_filename = argv[3]
-
+        
+        os.makedirs(WAV_DIR, exist_ok=True)
         wav_filename = convert_to_wav(audio_filename, WAV_DIR) 
+
         os.makedirs(SPLIT_DIR, exist_ok=True)
 
         split_audiofile(wav_filename, SPLIT_LEN, SPLIT_DIR)
