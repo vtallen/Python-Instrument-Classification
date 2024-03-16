@@ -1,4 +1,10 @@
 {
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.typeCheckingMode": "strict",
+  "include": [
+    "dataset_gen",
+    "cli_tool"
+  ],
   "executionEnvironments": {
     "default": {
       "extraPaths": [

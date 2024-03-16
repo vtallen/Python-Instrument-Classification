@@ -21,12 +21,13 @@ import glob
 
 import tqdm
 
+
 def convert_all_to_wav(filenames, split_wav_path, max_processes):
     ffmpeg_cmd = 'ffmpeg -i'
     output_log_cmd = '>> ffmpeg.log 2>&1'
     # Make the output Directory if it does not exist
     if not os.path.exists(split_wav_path):
-        os.mkdir(split_wav_path)
+        os.makedirs(split_wav_path, exist_ok=True)
     
     split_filenames = [os.path.split(filename) for filename in filenames]
 
@@ -55,11 +56,22 @@ def convert_all_to_wav(filenames, split_wav_path, max_processes):
         for process in completed_processes:
             processes.remove(process) 
 
-def single_convert():
-    pass
+def convert_to_wav(filename, outpath):
+    if not os.path.exists(outpath):
+        os.makedirs(outpath, exist_ok=True)
 
-def tester_func():
-    print("Other module")
+    ossplitfile = os.path.split(filename)
+    noext = os.path.splitext(ossplitfile[1])
+    
+    outfilename = outpath + noext[0] + '.wav'
+
+    cmd = 'ffmpeg -i ' + filename + ' ' + outfilename 
+    
+    convertpros = subprocess.Popen(cmd, shell=True)
+
+    convertpros.wait()
+
+    return outfilename
 
 __USAGE__='USASGE:'\
         'python3 converttowav.py <infolder> <outfolder> <max_processes>'

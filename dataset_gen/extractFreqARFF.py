@@ -105,6 +105,58 @@ def wav2arff(fpath, openarffcsv, rawarffcsv, number_harmonics):
 
     return None
 
+# Allows me to import it
+# TODO: FIX REPEAT LATER, this is just a hacky solution for now
+def create_arff(audiofolder, number_harmonics, outarff_filename_starter, outdir):
+    WavPathsList = glob.glob(audiofolder + '*.wav')
+
+    openarfffile = open(outdir + outarff_filename_starter + 'Normalized.arff', 'w',
+        newline='')
+    rawarffile = open(outdir + outarff_filename_starter + 'Raw.arff', 'w')
+    
+    for of in [openarfffile, rawarffile]:
+        of.write("@relation " + outarff_filename_starter + "\n")
+        for i in range(1, number_harmonics+1):
+            of.write("@attribute ampl" + str(i) + " numeric\n")
+            of.write("@attribute freq" + str(i) + " numeric\n")
+        of.write("@attribute instrument\n")
+        of.write("@data\n")
+        of.flush()
+    openarffcsv = csv.writer(openarfffile, delimiter=',', quotechar='"')
+    rawarffcsv = csv.writer(rawarffile, delimiter=',', quotechar='"')
+
+    pbar = tqdm.tqdm(desc='Analyzing audio', total=len(WavPathsList))
+    for idx, path in enumerate(WavPathsList):
+        # print('Analyzing audio', str(idx) + '/' + str(totalfiles))
+        wav2arff(path, openarffcsv, rawarffcsv, number_harmonics) # N.P. add
+        pbar.update(1)
+
+    openarfffile.close()
+    rawarffile.close()
+
+    openarfffile = open(outdir + outarff_filename_starter +'Normalized.arff', 'r')
+    rawarffile = open(outdir + outarff_filename_starter +'Raw.arff', 'r')
+    
+    for file in [openarfffile, rawarffile]:
+        data = file.readlines()
+
+        for idx, line in enumerate(data):
+            if line == "@attribute instrument\n":
+                newline = '@attribute instrument {'
+                numinst = len(SeenInstruments)
+                for idy, inst in enumerate(SeenInstruments):
+                    if idy == (numinst - 1):
+                        newline += inst + '}\n'
+                    else:
+                        newline += inst + ','
+                data[idx] = newline
+                break 
+
+        file.close()            
+        outfile = open(file.name, 'w')
+        outfile.writelines(data)
+        outfile.close()
+
 __USAGE__ =                                                         \
 'python3 extractFreqARFF.py <Number of Harmonics> <audio dir> <outputfilename (no ext)>'
 # 'python extractAudioFreqARFF.py moduleWithWavPaths outARFFname [ Nharmonics ]'

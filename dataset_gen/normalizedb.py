@@ -3,17 +3,22 @@ import glob
 import subprocess
 import sys
 
-from pydub import AudioSegment
+from pydub import AudioSegment, effects
 import tqdm
+
+def match_target_amplitude(sound, target_dBFS):
+    change_in_dBFS = target_dBFS - sound.dBFS
+    return sound.apply_gain(change_in_dBFS)
 
 # Function to normalize audio file
 def normalize_audio(file_path, out_folder, target_dBFS=-20):
     split_file_path = os.path.split(file_path)
     noext = split_file_path[1].split('.')
 
-    sound = AudioSegment.from_file(file_path)
-    change_in_dBFS = target_dBFS - sound.dBFS
-    normalized_sound = sound + change_in_dBFS
+    sound = AudioSegment.from_file(file_path) # Load the audio file
+    # change_in_dBFS = target_dBFS - sound.dBFS # Determine how much to bring the dbs up
+    # normalized_sound = sound + change_in_dBFS # Adjust the 
+    normalized_sound = match_target_amplitude(sound, target_dBFS)
     normalized_sound.export(out_folder + '/' + noext[0] + '_norm.' + noext[1], format='wav')
 
 __USAGE__ = \
