@@ -26,11 +26,31 @@ __USAGE__ = "USAGE:"\
         "python3 cleandata.py <infile.arff> <outfile.arff> - cleans a single file"\
         "python3 cleandata.py <filesdir> - cleans all arff files in <filesdir>"
 
-def clean_file(filename, outfilename):
+'''
+* ********************************************************************************************** *
+*                                                                                                *
+* Name:             clean_file                                                                   *
+*                                                                                                *
+* Parameters:       str filename         - The file to clean                                     *
+*                   str outfilename = '' - The file to save the cleaned file as. Defaults to     *
+*                                          the value of filename (clean in place)                *
+*                                                                                                *
+* Purpose:          Removes bad data from the given arff file. These are lines that contain no   *
+*                   audio data, so they start with a 0 or nan. Also removes short rows. These    *
+*                   occur when there is not enough audio data in a snippet to extract all the    *
+*                   requested harmonics                                                          *
+*                                                                                                *
+* ********************************************************************************************** *
+'''
+def clean_file(filename, outfilename=''):
+    if outfilename == '':
+        outfilename = filename
+
     file = open(filename, 'r')
     header = []
     numcols = 0
-
+    
+    # Pulls out the arff header data
     line = file.readline().strip()
     while True:
         header.append(line)
@@ -43,25 +63,34 @@ def clean_file(filename, outfilename):
 
         line = file.readline().strip()
     
+    # Now the file is just a csv
     incsv = csv.reader(file)
-    data = []
+    origdata = []
     for row in incsv:
-        data.append(row) 
+        origdata.append(row) 
 
     file.close()
 
-    # inCSV = csv.reader(file)
     outfile = open(outfilename, 'w')
     for line in header:
         outfile.write(line + '\n')
 
     outcsv = csv.writer(outfile)
     
-    # excludes rows that have 0.0 ampl vals, nan, or all attributes are not filled 
-    for row in data:
-        if len(row) != numcols:
-            print('Short row:', row)
-        if row[0] != 'nan' and row[0] != '0.0' and len(row) == numcols:
+    # Find how many cols each row should have
+    # Finds the first row that does not start with a 0 or nan and stores its length
+    rowlen = 0
+    if origdata[0][0] != 'nan' and origdata[0][0] != '0.0':
+        rowlen = len(origdata[0][0])
+    else:
+        for row in origdata:
+            if origdata[0][0] != 'nan' and origdata[0][0] != '0.0':
+                rowlen = len(origdata[0][0])
+                break
+
+    # excludes rows that have 0.0 ampl vals, or nan 
+    for row in origdata:
+        if row[0] != 'nan' and row[0] != '0.0' and len(row) == rowlen:
             outcsv.writerow(row)
 
     outfile.close()
