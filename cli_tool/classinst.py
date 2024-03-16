@@ -3,6 +3,7 @@ import sys
 import pickle
 import glob
 from statistics import mode
+import shutil
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -46,8 +47,11 @@ def predict(model, arff_filename):
     # print() 
 
     attrib = df.iloc[:, :-1].values
+
     predicted_insts = model.predict(attrib)
-    print('MODE:', mode(predicted_insts))
+    print('Instrument is:', mode(predicted_insts))
+    # for inst in predicted_insts:
+    #     print(inst)
 
 
 if __name__ == "__main__":
@@ -76,9 +80,12 @@ if __name__ == "__main__":
         # load the model
         with open(model_filename, 'rb') as f:
             model = pickle.load(f)
-
+        
         predict(model, ARFF_DIR + 'datasetRaw.arff')
 
+        # Cleanup
+        shutil.rmtree(TEMP_DIR)
+        
     elif argc == 2:
         pass
     else:
