@@ -29,16 +29,16 @@ import glob
 
 import tqdm
 
-NFFTharmonics = 128          # How many strongest bins to use without sort.
-# DEBUG LEN OF unsortedFFT: 22050 NFFTharmonics for sampling rate 44100
-NRndTrainLimit = 5          # How many of each in NRndTrain.arff, tid != 0
-NRndTrainCount = {
-    'SinOsc' : 0 ,
-    'TriOsc' : 0 ,
-    'SqrOsc' : 0 ,
-    'SawOsc' : 0 ,
-    'PulseOsc' : 0
-}
+# NFFTharmonics = 128          # How many strongest bins to use without sort.
+# # DEBUG LEN OF unsortedFFT: 22050 NFFTharmonics for sampling rate 44100
+# NRndTrainLimit = 5          # How many of each in NRndTrain.arff, tid != 0
+# NRndTrainCount = {
+#     'SinOsc' : 0 ,
+#     'TriOsc' : 0 ,
+#     'SqrOsc' : 0 ,
+#     'SawOsc' : 0 ,
+#     'PulseOsc' : 0
+# }
 SeenInstruments = set() 
 
 def wav2arff(fpath, openarffcsv, rawarffcsv, number_harmonics):
@@ -176,7 +176,7 @@ if __name__ == '__main__':
             sys.stderr.write("ERROR, Nharmonics must be at least 8: " + sys.argv[1] + '\n')
             sys.exit(1)
             
-        WavPathsList = glob.glob(argv[2] + '/*.wav')
+        WavPathsList = glob.glob(argv[2] + '*.wav')
 
         number_harmonics = int(argv[1])
 

@@ -6,4 +6,4 @@
 * have the root makefile call all other make processes 
 * add tests in the root makefiile
 * modify the cleandata.py script to provide no output
-* setup venvs and requirements.txt for each module
+* setup venvs and requirements.txt for whole project. Just do one venv in the root dir to make things simple 

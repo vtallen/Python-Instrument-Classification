@@ -31,6 +31,7 @@ all: download convert split normalize arff sanitizedata
 	@echo "AUDIO_FILE_LEN: $(AUDIO_FILE_LEN)"
 	@echo "DONE!"
 
+# Downloads all of the YouTube audios used for the dataset from the file LINKS_CSV_NAME
 download:
 ifeq ($(wildcard $(DOWNLOAD_DIR)),)
 	@echo "Directory $(DOWNLOAD_DIR) does not exist, downloading."
@@ -39,6 +40,7 @@ else
 	@echo "Directory $(DOWNLOAD_DIR) exists. Skipping target download."
 endif
 
+# Converts all of the downloadd files to .wav
 convert:
 ifeq ($(wildcard $(FULL_WAV_DIR)),)
 	@echo "Directory $(FULL_WAV_DIR) does not exist, converting."
@@ -47,6 +49,7 @@ else
 	@echo "Directory $(FULL_WAV_DIR) exists. Skipping target convert."
 endif
 
+# Splits all of the wav files to smaller files of length $(AUDIO_FILE_LEN)
 split:
 ifeq ($(wildcard $(SPLIT_DIR)),)
 	@echo "Directory $(SPLIT_DIR) does not exist, splitting files."
@@ -55,6 +58,7 @@ else
 	@echo "Directory $(SPLIT_DIR) exists. Skipping target split."
 endif
 
+# Normalizes all split files to dbfs level NORMALIZATION_DBFS
 normalize:
 	NORM_DIR := "normalized_$(AUDIO_FILE_LEN)"
 
@@ -65,17 +69,20 @@ else
 	@echo "Directory $(NORM_DIR) exists. Skipping target normalize."
 endif
 
+# Generates the dataset arff file
 arff: $(AUDIO_FILE_LEN)datasetRaw.arff
 	mkdir -p $(ARFF_OUT_DIR) 
 	mv *.arff $(ARFF_OUT_DIR) 
 
 $(AUDIO_FILE_LEN)datasetRaw.arff:
-	python3 extractFreqARFF.py $(NUM_HARMONICS) normalized_$(AUDIO_FILE_LEN) $(AUDIO_FILE_LEN)dataset
+	python3 extractFreqARFF.py $(NUM_HARMONICS) normalized_$(AUDIO_FILE_LEN)/ $(AUDIO_FILE_LEN)dataset
 
+# Removes bad rows from the dataset
 sanitizedata:
 	python3 cleandata.py $(ARFF_OUT_DIR)/$(AUDIO_FILE_LEN)datasetNormalized.arff $(ARFF_OUT_DIR)/$(AUDIO_FILE_LEN)datasetNormalized.arff
 	python3 cleandata.py $(ARFF_OUT_DIR)/$(AUDIO_FILE_LEN)datasetRaw.arff $(ARFF_OUT_DIR)/$(AUDIO_FILE_LEN)datasetRaw.arff
 
+# Deletes all files that this makefile creates (except for the arff files)
 clean:
 	rm -r -f $(FULL_WAV_DIR)
 	rm -r -f $(DOWNLOAD_DIR) 
