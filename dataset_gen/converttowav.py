@@ -18,6 +18,8 @@ import sys
 import os
 import subprocess
 import glob
+import datetime 
+import time
 
 import tqdm
 
@@ -36,8 +38,10 @@ import tqdm
 * ********************************************************************************************** *
 '''
 def convert_all_to_wav(filenames, outpath, max_processes):
-    ffmpeg_cmd = 'ffmpeg -i'
-    output_log_cmd = '>> ffmpeg.log 2>&1'
+    ffmpeg_cmd = 'ffmpeg -i '
+    # output_log_cmd = '>> ffmpeg.log 2>&1'
+    output_log_cmd = ' -loglevel quiet'
+
     # Make the output Directory if it does not exist
     if not os.path.exists(outpath):
         os.makedirs(outpath, exist_ok=True)
@@ -49,7 +53,7 @@ def convert_all_to_wav(filenames, outpath, max_processes):
 
     for filename in split_filenames:
         no_ext = filename[1].split('.')
-        commands.append(ffmpeg_cmd + ' ' + filename[0] + '/' + filename[1] + ' ' + outpath + '/' + no_ext[0] + '.wav' + ' ' + output_log_cmd)
+        commands.append(ffmpeg_cmd + ' ' + filename[0] + '/' + filename[1] + ' ' + outpath + '/' + no_ext[0] + '.wav' + output_log_cmd)
 
     pbar = tqdm.tqdm(desc='Converting to wav', total=len(commands))
 
@@ -69,6 +73,11 @@ def convert_all_to_wav(filenames, outpath, max_processes):
         for process in completed_processes:
             processes.remove(process) 
 
+    for process in processes:
+        process.wait()
+
+    # for process in completed_processes:
+        # process.wait()
 '''
 * ********************************************************************************************** *
 *                                                                                                *
@@ -89,13 +98,11 @@ def convert_to_wav(filename, outpath):
     
     outfilename = outpath + noext[0] + '.wav'
 
-    output_log_cmd = '>> ffmpeg.log 2>&1'
     cmd = 'ffmpeg -i ' + filename + ' ' + outfilename + '>>' + outpath + 'ffmpeg.log 2>&1'
     
     convertpros = subprocess.Popen(cmd, shell=True)
 
     convertpros.wait()
-
     return outfilename
 
 __USAGE__='USASGE:'\
@@ -113,12 +120,3 @@ if __name__ == "__main__":
     filenames.extend(glob.glob(argv[1] + '/*.mp3'))
 
     convert_all_to_wav(filenames, argv[2], int(argv[3]))
-    
-
- 
-    
-    
-
-
-
-

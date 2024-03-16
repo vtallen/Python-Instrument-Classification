@@ -82,6 +82,9 @@ def split_all_files(filenames, outpath_start, seconds, max_processes):
         for process in completed_processes:
             processes.remove(process) 
 
+    for process in processes:
+        process.wait()
+
 '''
 * ********************************************************************************************** *
 *                                                                                                *

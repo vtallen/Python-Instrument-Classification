@@ -6,20 +6,21 @@ from statistics import mode
 import shutil
 import warnings
 
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import confusion_matrix, accuracy_score
 from scipy.io import arff
+import pandas as pd
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(script_dir, '..'))
+# Add the parent directory to sys.path
+sys.path.append(parent_dir)
 # Allow relative imports
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'dataset_gen')) 
-from converttowav import convert_to_wav #pyright: ignore 
-from splitaudio import split_audiofile # pyright: ignore 
-from normalizedb import normalize_audio #pyright:ignore 
-from extractFreqARFF import create_arff # pyright: ignore 
-from cleandata import clean_file # pyright : ignore
+from dataset_gen.converttowav import convert_to_wav #pyright: ignore 
+from dataset_gen.splitaudio import split_audiofile # pyright: ignore 
+from dataset_gen.normalizedb import normalize_audio #pyright:ignore 
+from dataset_gen.extractFreqARFF import create_arff # pyright: ignore 
+from dataset_gen.cleandata import clean_file # pyright : ignore
 
+# Global constants, might add flag parsing later for this
 TEMP_DIR = 'audiotmp/'
 SPLIT_LEN = 0.1
 WAV_DIR = TEMP_DIR + 'wav/'

@@ -21,6 +21,7 @@
 import csv
 import sys
 import glob
+import os
 
 __USAGE__ = "USAGE:"\
         "python3 cleandata.py <infile.arff> <outfile.arff> - cleans a single file"\

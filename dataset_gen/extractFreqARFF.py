@@ -176,7 +176,6 @@ if __name__ == '__main__':
             sys.exit(1)
             
         WavPathsList = glob.glob(argv[2] + '*.wav')
-
         number_harmonics = int(argv[1])
 
         openarfffile = open(argv[3] + 'Normalized.arff', 'w',

@@ -86,6 +86,7 @@ if __name__ == "__main__":
         pbar = tqdm.tqdm(desc='Normalizing dbfs', total=len(commands))
         
         processes = []
+
         conversion_num = 0
         while commands: 
             # Fill up the currently running processes to the max allowed
@@ -101,5 +102,10 @@ if __name__ == "__main__":
             
             for process in completed_processes:
                 processes.remove(process) 
+                
+
+        for process in processes:
+            process.wait()
+
     else:
         print(__USAGE__)

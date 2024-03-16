@@ -19,7 +19,6 @@
 *                                                                                                *
 * ********************************************************************************************** *
 '''
-
 from pytube import YouTube
 import tqdm
 
@@ -28,6 +27,7 @@ import base64
 import os
 import sys
 import subprocess
+import datetime
 
 '''
 * ********************************************************************************************** *
@@ -105,7 +105,9 @@ def download_audios(csv, outdir, max_processes):
         
         for process in completed_processes:
             processes.remove(process) 
-
+    
+    for process in processes:
+        process.wait()
 
 
 __USAGE__ = 'python3 audiodl.py <csv> <outdir> <max_proccesses>'\
