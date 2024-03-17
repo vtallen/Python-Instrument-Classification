@@ -27,6 +27,7 @@ import os
 import glob
 import subprocess
 import sys
+from math import ceil
 
 from pydub import AudioSegment, effects
 import tqdm
@@ -63,12 +64,30 @@ def normalize_audio(filename, outpath, target_dBFS=-20):
 
 __USAGE__ = \
         'python3 normalizedb.py -s <dBFS> <filename> <outdir> - normalize the given wav file\n'\
-        'python3 normalizedb.py -m <dBFS> <indir> <outdir> <maxprocesses>- normalize all files in outdir'
-        
+        'python3 normalizedb.py -m <dBFS> <indir> <outdir> <maxprocesses>- normalize all files in outdir'\
+        'python3 normalizedb.py -b <dBFS> <outdir> <file1 ... file2 ... filen>'
+
+def spawn_workers(filenames, outdir, max_processes, target_dBFS=-20):
+    numfiles = len(filenames)
+    numrounds = 2 
+    files_per_process = (numfiles // max_processes) // numrounds 
+    files_remainder = numfiles - ((max_processes * numrounds) * files_per_process)
+
+    processes = []
+    cmd = 'python3 normalizedb.py -b ' + str(target_dBFS) + ' ' + outdir 
+
+    for idx in range(max_processes * numrounds):
+
+        pass
+    
+
+
+
 if __name__ == "__main__":
     argc = len(sys.argv)
     argv = sys.argv
-    
+    # spawn_workers(range(0, 10023489039810297), 8, ) 
+    sys.exit()
     if argc == 5:
         normalize_audio(argv[3], argv[4], int(argv[2]))
     elif argc == 6:

@@ -10,7 +10,7 @@ ARFF_OUT_DIR := 'arff'
 LINKS_CSV_NAME := 'smalltest.csv'
 
 # For paralellized scripts, this is the max number of Python instances that will be launched
-MAX_THREADS := 12 
+MAX_THREADS := 1 
 # The max number of concurent YouTube download streams allowed 
 MAX_DL_STREAMS := 5 
 
