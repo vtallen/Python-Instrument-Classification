@@ -33,9 +33,9 @@ from pydub import AudioSegment, effects
 import tqdm
 
 # TODO : Delete once the normalize_audio method is confirmed working
-def match_target_amplitude(sound, target_dBFS):
-    change_in_dBFS = target_dBFS - sound.dBFS
-    return sound.apply_gain(change_in_dBFS)
+# def match_target_amplitude(sound, target_dBFS):
+#     change_in_dBFS = target_dBFS - sound.dBFS
+#     return sound.apply_gain(change_in_dBFS)
 
 '''
 * ********************************************************************************************** *
@@ -61,12 +61,6 @@ def normalize_audio(filename, outpath, target_dBFS=-20):
     # normalized_sound = match_target_amplitude(sound, target_dBFS)
     normalized_sound.export(outpath +  noext[0] + '_norm.' + noext[1], format='wav')
     
-
-__USAGE__ = \
-        'python3 normalizedb.py -s <dBFS> <filename> <outdir> - normalize the given wav file\n'\
-        'python3 normalizedb.py -m <dBFS> <indir> <outdir> <maxprocesses>- normalize all files in outdir'\
-        'python3 normalizedb.py -b <dBFS> <outdir> <file1 ... file2 ... filen>'
-
 # Appends all of the files in filenames th=o the template and  returns it
 def append_cmd(filenames, outdir, target_dBFS=-20):
     cmd = 'python3 normalizedb.py -b ' + str(target_dBFS) + ' ' + outdir 
@@ -105,44 +99,40 @@ def batch_normalize(filenames, outdir, target_dBFS=-20):
     for filename in filenames:
         normalize_audio(filename, outdir, target_dBFS)
 
-def multithread_normalize(indir, outdir, target_dBFS=-20):
-    filenames = glob.glob(indir + '*.wav')
-    cmds = make_cmds_arr(filenames, outdir, max_processes)
+def multithread_normalize(indir, outdir, max_processes, target_dBFS=-20):
+    filenames = glob.glob(indir + '*.wav') # locate all wavfiles in the supplied dir
+    cmds = make_cmds_arr(filenames, outdir, max_processes) # Generates all of the commands we need
     
-    sum = 0
-    for cmd in cmds:
-        sum += cmd[1]
-
-    print('sum files:', sum)
-
-    processes = []
-
-    conversion_num = 0
-    pbar = tqdm.tqdm(desc='Normalizing dbfs', total=len(commands))
-    # the gameplan
-    # Append a prefilled subprocess to each list in cmds
-    # Have another list of currently running cmd arrays. When one starts, pop it from the master cmds array onto the current arr
-    # Each time one complees, pop it off the current arr and update the pbar with the number of files processed
+    running_processes = []
     
-    # while commands: 
-    #     # Fill up the currently running processes to the max allowed
-    #     while len(processes) < int(argv[5]) and commands:
-    #         processes.append(subprocess.Popen(commands.pop(), shell=True))
-    #     
-    #     completed_processes = []     
-    #     for process in processes:
-    #         if process.poll() is not None:
-    #             completed_processes.append(process)
-    #             conversion_num += 1
-    #             pbar.update(1)
-    #     
-    #     for process in completed_processes:
-    #         processes.remove(process) 
-    #         
+    pbar = tqdm.tqdm(desc='Normalizing dbfs', total=len(filenames))
 
-    # for process in processes:
-    #     process.wait()
+    while cmds:
+        while len(running_processes) < max_processes:
+            cmd_and_count = cmds.pop()
+            # Pass on the selected process along with the number of files it will normalize 
+            running_processes.append([subprocess.Popen(cmd_and_count[0], shell=True), cmd_and_count[1]])
+        
+        # See if any of the processes have completed, and remove them if they are
+        completed_processes = []
+        for cmd_and_count in running_processes:
+            if cmd_and_count[0].poll() is not None:
+                completed_processes.append(cmd_and_count)
+                pbar.update(cmd_and_count[1])
 
+        for process in completed_processes:
+            running_processes.remove(process)
+    
+    # Wait for all processes to complete once all cmds have been run
+    for cmd_and_count in running_processes:
+        cmd_and_count[0].wait()
+        pbar.update(cmd_and_count[1])
+
+__USAGE__ = \
+        'Normalizes a file or group of files to a target decible level\n'\
+        'python3 normalizedb.py -s <dBFS> <filename> <outdir> - normalize the given wav file\n'\
+        'python3 normalizedb.py -m <dBFS> <indir> <outdir> <maxprocesses> - normalize all files in outdir'\
+        'python3 normalizedb.py -b <dBFS> <outdir> <file1 ... file2 ... filen> - Normalize all files passed on the command line'
 
 if __name__ == "__main__":
     argc = len(sys.argv)
@@ -152,10 +142,9 @@ if __name__ == "__main__":
         target_dBFS = int(argv[2])
         outdir = argv[3]
 
-        filenames = [x for x in argv[4:argc]]
-        print()
-        print('Len filenames batch mode:', len(filenames))
-        os.makedirs(outdir, exist_ok=True)
+        filenames = [x for x in argv[4:argc]] # pulls in every argument after the outdir
+
+        os.makedirs(outdir, exist_ok=True) # Make sure we have a dir to put everything into
         batch_normalize(filenames, outdir, target_dBFS)
 
     elif argv[1] == '-m' and argc == 6: # Multithreaded normalization
@@ -164,7 +153,15 @@ if __name__ == "__main__":
         outdir = argv[4]
         max_processes = int(argv[5])
 
-        multithread_normalize(indir, outdir, target_dBFS)
+        multithread_normalize(indir, outdir, max_processes, target_dBFS)
+    elif argv[1] == '-s' and argc == 5: # Single file normalization
+        target_dBFS = int(argv[2]) 
+        filename = argv[3]
+        outdir = argv[4]
+
+        normalize_audio(filename, outdir, target_dBFS)
+    else:
+        print(__USAGE__)
 
     sys.exit()
     if argc == 5:
