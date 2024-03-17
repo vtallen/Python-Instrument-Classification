@@ -67,26 +67,105 @@ __USAGE__ = \
         'python3 normalizedb.py -m <dBFS> <indir> <outdir> <maxprocesses>- normalize all files in outdir'\
         'python3 normalizedb.py -b <dBFS> <outdir> <file1 ... file2 ... filen>'
 
-def spawn_workers(filenames, outdir, max_processes, target_dBFS=-20):
+# Appends all of the files in filenames th=o the template and  returns it
+def append_cmd(filenames, outdir, target_dBFS=-20):
+    cmd = 'python3 normalizedb.py -b ' + str(target_dBFS) + ' ' + outdir 
+
+    process_cmd = cmd
+    for file in filenames:
+        process_cmd += ' ' + file
+    
+    return process_cmd
+
+# Returns an array of arrays where arr[0] is a str command and arr[1] is the number of files in the cmd
+def make_cmds_arr(filenames, outdir, max_processes, target_dBFS=-20):
     numfiles = len(filenames)
     numrounds = 2 
     files_per_process = (numfiles // max_processes) // numrounds 
-    files_remainder = numfiles - ((max_processes * numrounds) * files_per_process)
+    # files_remainder = numfiles - ((max_processes * numrounds) * files_per_process)
 
-    processes = []
-    cmd = 'python3 normalizedb.py -b ' + str(target_dBFS) + ' ' + outdir 
+    cmds = []
+    start_idx = 0
 
     for idx in range(max_processes * numrounds):
-
-        pass
+        end_idx = start_idx + files_per_process
+        process_files = filenames[start_idx:end_idx]
+        
+        process_cmd = append_cmd(process_files, outdir, target_dBFS) 
+        
+        cmds.append([process_cmd, len(process_files)])
+        start_idx = end_idx
     
+    leftover_filenames = filenames[start_idx:len(filenames)] 
+    cmds.append([append_cmd(leftover_filenames, outdir, target_dBFS), len(leftover_filenames)])
 
+    return cmds
+
+def batch_normalize(filenames, outdir, target_dBFS=-20):
+    for filename in filenames:
+        normalize_audio(filename, outdir, target_dBFS)
+
+def multithread_normalize(indir, outdir, target_dBFS=-20):
+    filenames = glob.glob(indir + '*.wav')
+    cmds = make_cmds_arr(filenames, outdir, max_processes)
+    
+    sum = 0
+    for cmd in cmds:
+        sum += cmd[1]
+
+    print('sum files:', sum)
+
+    processes = []
+
+    conversion_num = 0
+    pbar = tqdm.tqdm(desc='Normalizing dbfs', total=len(commands))
+    # the gameplan
+    # Append a prefilled subprocess to each list in cmds
+    # Have another list of currently running cmd arrays. When one starts, pop it from the master cmds array onto the current arr
+    # Each time one complees, pop it off the current arr and update the pbar with the number of files processed
+    
+    # while commands: 
+    #     # Fill up the currently running processes to the max allowed
+    #     while len(processes) < int(argv[5]) and commands:
+    #         processes.append(subprocess.Popen(commands.pop(), shell=True))
+    #     
+    #     completed_processes = []     
+    #     for process in processes:
+    #         if process.poll() is not None:
+    #             completed_processes.append(process)
+    #             conversion_num += 1
+    #             pbar.update(1)
+    #     
+    #     for process in completed_processes:
+    #         processes.remove(process) 
+    #         
+
+    # for process in processes:
+    #     process.wait()
 
 
 if __name__ == "__main__":
     argc = len(sys.argv)
     argv = sys.argv
-    # spawn_workers(range(0, 10023489039810297), 8, ) 
+    
+    if argv[1] == '-b' and argc > 4: # Batch normalization
+        target_dBFS = int(argv[2])
+        outdir = argv[3]
+
+        filenames = [x for x in argv[4:argc]]
+        print()
+        print('Len filenames batch mode:', len(filenames))
+        os.makedirs(outdir, exist_ok=True)
+        batch_normalize(filenames, outdir, target_dBFS)
+
+    elif argv[1] == '-m' and argc == 6: # Multithreaded normalization
+        target_dBFS = int(argv[2])
+        indir = argv[3]
+        outdir = argv[4]
+        max_processes = int(argv[5])
+
+        multithread_normalize(indir, outdir, target_dBFS)
+
     sys.exit()
     if argc == 5:
         normalize_audio(argv[3], argv[4], int(argv[2]))
