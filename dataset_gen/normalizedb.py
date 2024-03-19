@@ -61,7 +61,23 @@ def normalize_audio(filename, outpath, target_dBFS=-20):
     # normalized_sound = match_target_amplitude(sound, target_dBFS)
     normalized_sound.export(outpath +  noext[0] + '_norm.' + noext[1], format='wav')
     
-# Appends all of the files in filenames th=o the template and  returns it
+'''
+* ********************************************************************************************** *
+*                                                                                                *
+* Name:             append_cmd                                                                   *
+*                                                                                                *
+* Parameters:       str[] filenames - The filenames to be appended on to the normalize cmd       *
+*                   str outdir      - The path to place normalized files in                      *
+*                   int target_dBFS - The target db level                                        *
+*                                                                                                *
+* Purpose:          Takes in a list of filenames and returns a completed batch mode command for  *
+*                   this script so that multithread_normalize can split up a massive list of     *
+*                   files between threads.                                                       *
+*                                                                                                *
+* Returns:          str - the filled out command template                                        *
+*                                                                                                *
+* ********************************************************************************************** *
+'''
 def append_cmd(filenames, outdir, target_dBFS=-20):
     cmd = 'python3 normalizedb.py -b ' + str(target_dBFS) + ' ' + outdir 
 
@@ -71,7 +87,26 @@ def append_cmd(filenames, outdir, target_dBFS=-20):
     
     return process_cmd
 
-# Returns an array of arrays where arr[0] is a str command and arr[1] is the number of files in the cmd
+'''
+* ********************************************************************************************** *
+*                                                                                                *
+* Name:             make_cmds_arr                                                                *
+*                                                                                                *
+* Parameters:       str[] filenames   - The filenames to create commands for                     *
+*                   str outdir        - The path to place normalized files in                    *
+*                   int max_processes - The maximum number of threads to be used at any one time *
+*                   int target_dBFS   - The target db level                                      *
+*                                                                                                *
+* Purpose:          Takes in a list of filenames and returns a 2d array with each element        *
+*                   containing a str in element zero, which is the command to process a          *
+*                   chunk of files, and an int in element 1 which is how many files that cmd     *
+*                   will process                                                                 *
+*                                                                                                *
+* Returns:          [[str, int]] - str - the filled out command template                         *
+*                                  int - the number of files that command will process           *
+*                                                                                                *
+* ********************************************************************************************** *
+'''
 def make_cmds_arr(filenames, outdir, max_processes, target_dBFS=-20):
     numfiles = len(filenames)
     numrounds = 2 
