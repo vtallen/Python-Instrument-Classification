@@ -20,6 +20,13 @@
 *                   <dBFS>          - The target db level                                        *
 *                   <outdir>        - Where to place the file                                    *
 *                   <max_processes> - The max number of subprocesses allowed to spawn            *
+*                                                                                                *
+*             python3 normalizedb.py -b <dBFS> <outdir> <file1 ... file2 ... filen>              *
+*                   -b              - The flag to process files in batch mode                    *
+*                   <dBFS>          - The target db level                                        *
+*                   <outdir>        - Where to place the file                                    *
+*                   <filelist>      - A space delimited list of files to process                 *
+*                                                                                                *
 **************************************************************************************************
 '''
 
@@ -108,36 +115,100 @@ def append_cmd(filenames, outdir, target_dBFS=-20):
 * ********************************************************************************************** *
 '''
 def make_cmds_arr(filenames, outdir, max_processes, target_dBFS=-20):
-    numfiles = len(filenames)
-    numrounds = 2 
-    files_per_process = (numfiles // max_processes) // numrounds 
-    # files_remainder = numfiles - ((max_processes * numrounds) * files_per_process)
+    num_files = len(filenames) 
+    files_per_process = 150
+    num_processes = num_files // files_per_process
+    
+    if files_per_process == 0:
+        if num_files < max_processes:
+            files_per_process = 1
+        else:
+            files_per_process = filenames // max_processes 
 
     cmds = []
     start_idx = 0
 
-    for idx in range(max_processes * numrounds):
+    for _ in range(0, num_processes):
+        end_idx = start_idx + files_per_process
+        
+        # Edge case checking
+        # Case reached if we have less files than max_processes or we somehow over reach array bounds
+        # Any extra files will get caught by leftover filenames
+        if end_idx > num_files: 
+            break
+        
+        process_files = filenames[start_idx:end_idx]
+
+        # Edge case - if somehow we get a blank array skip this array
+        # Would only happnen if my process splitting code failed
+        if len(process_cmd):
+            continue
+
+        process_cmd = append_cmd(process_files, outdir, target_dBFS)
+        cmds.append([process_cmd, len(process_files)])
+        start_idx = end_idx
+    
+    
+    leftover_filenames = filenames[start_idx:len(filenames)]
+    if len(leftover_filenames) > 0:
+        cmds.append([append_cmd(leftover_filenames, outdir, target_dBFS), len(leftover_filenames)])
+
+    '''
+    for _ in range(max_processes * numrounds):
         end_idx = start_idx + files_per_process
         process_files = filenames[start_idx:end_idx]
         
         process_cmd = append_cmd(process_files, outdir, target_dBFS) 
         
         cmds.append([process_cmd, len(process_files)])
+        print(len(process_files))
         start_idx = end_idx
     
     leftover_filenames = filenames[start_idx:len(filenames)] 
     cmds.append([append_cmd(leftover_filenames, outdir, target_dBFS), len(leftover_filenames)])
-
+    '''
     return cmds
 
+'''
+* ********************************************************************************************** *
+*                                                                                                *
+* Name:             batch_normalize                                                              *
+*                                                                                                *
+* Parameters:       str[] filenames   - The filenames to create commands for                     *
+*                   str outdir        - The path to place normalized files in                    *
+*                   int target_dBFS   - The target db level                                      *
+*                                                                                                *
+* Purpose:          Takes in a list of filenames and normalizes them all with 1 thread           * 
+*                                                                                                *
+* ********************************************************************************************** *
+'''
 def batch_normalize(filenames, outdir, target_dBFS=-20):
     for filename in filenames:
         normalize_audio(filename, outdir, target_dBFS)
 
+'''
+* ********************************************************************************************** *
+*                                                                                                *
+* Name:             multithread_normalize                                                        *
+*                                                                                                *
+* Parameters:       str[] filenames   - The filenames to create commands for                     *
+*                   str outdir        - The path to place normalized files in                    *
+*                   int max_processes - The maximum number of threads to be used at any one time *
+*                   int target_dBFS   - The target db level                                      *
+*                                                                                                *
+* Purpose:          Normalizes all files stored in indir, spawns subprocesses to do this and will*
+*                   not exceed max_processes subprocesses                                        *
+*                                                                                                *
+* ********************************************************************************************** *
+'''
 def multithread_normalize(indir, outdir, max_processes, target_dBFS=-20):
     filenames = glob.glob(indir + '*.wav') # locate all wavfiles in the supplied dir
+
+    if max_processes == 1: # If we're only running 1 process there is not need to split the workload
+        batch_normalize(filenames, outdir, target_dBFS)
+        return
+
     cmds = make_cmds_arr(filenames, outdir, max_processes) # Generates all of the commands we need
-    
     running_processes = []
     
     pbar = tqdm.tqdm(desc='Normalizing dbfs', total=len(filenames))
@@ -199,43 +270,4 @@ if __name__ == "__main__":
         print(__USAGE__)
 
     sys.exit()
-    if argc == 5:
-        normalize_audio(argv[3], argv[4], int(argv[2]))
-    elif argc == 6:
-        if not os.path.exists(argv[4]):
-            os.mkdir(argv[4])
-        
-        norm_cmd = 'python3 normalizedb.py -s ' + argv[2] + ' '
-        filenames = glob.glob(argv[3] + '*.wav')
-
-        commands = []
-        
-        for filename in filenames:
-            commands.append(norm_cmd + filename + ' ' + argv[4])
-
-        pbar = tqdm.tqdm(desc='Normalizing dbfs', total=len(commands))
-        
-        processes = []
-
-        conversion_num = 0
-        while commands: 
-            # Fill up the currently running processes to the max allowed
-            while len(processes) < int(argv[5]) and commands:
-                processes.append(subprocess.Popen(commands.pop(), shell=True))
-            
-            completed_processes = []     
-            for process in processes:
-                if process.poll() is not None:
-                    completed_processes.append(process)
-                    conversion_num += 1
-                    pbar.update(1)
-            
-            for process in completed_processes:
-                processes.remove(process) 
-                
-
-        for process in processes:
-            process.wait()
-
-    else:
-        print(__USAGE__)
+    

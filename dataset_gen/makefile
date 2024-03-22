@@ -7,10 +7,10 @@ FULL_WAV_DIR := full_wav/
 # Where to place the dataset file created
 ARFF_OUT_DIR := 'arff'
 # File containing tagged YouTube links
-LINKS_CSV_NAME := 'smalltest.csv'
+LINKS_CSV_NAME := 'solo_instrument_video_links.csv'
 
 # For paralellized scripts, this is the max number of Python instances that will be launched
-MAX_THREADS := 1 
+MAX_THREADS := 15 
 # The max number of concurent YouTube download streams allowed 
 MAX_DL_STREAMS := 5 
 
@@ -30,7 +30,7 @@ NORM_DIR := normalized_$(AUDIO_FILE_LEN)/
 # This target forces a full rebuild every time. I am handling skipping un-needed steps manually
 .PHONY: download convert split normalize arff sanitizedata 
 
-all: venv download convert split normalize arff sanitizedata 
+all: download convert split normalize arff sanitizedata 
 	@echo "AUDIO_FILE_LEN: $(AUDIO_FILE_LEN)"
 	@echo "DONE!"
 
@@ -78,7 +78,7 @@ split:
 
 ifeq ($(wildcard $(SPLIT_DIR)),)
 	@echo "Directory $(SPLIT_DIR) does not exist, splitting files."
-	python3 splitaudio.py $(FULL_WAV_DIR) $(AUDIO_FILE_LEN) splitaudio_ $(MAX_THREADS) 
+	python3 splitaudio.py -m $(FULL_WAV_DIR) $(AUDIO_FILE_LEN) splitaudio_$(AUDIO_FILE_LEN)/ $(MAX_THREADS) 
 else
 	@echo "Directory $(SPLIT_DIR) exists. Skipping target split."
 endif
