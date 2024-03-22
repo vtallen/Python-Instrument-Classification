@@ -1,10 +1,13 @@
 VENV_DIR := .venv
 
-install: venv
-	$(VENV_DIR)/bin/pip install -r requirements.txt
-
-venv: 
+install: 
+	@echo "root:install"
+	@echo "==================="
 	python3 -m venv $(VENV_DIR)
+	$(VENV_DIR)/bin/pip install -r requirements.txt
+	@echo
 
 clean:
+	@echo "root:clean"
+	@echo "==================="
 	rm -rf $(VENV_DIR)
