@@ -66,11 +66,10 @@ def gen_FFT(audio_file):
 
     return sortedfft
 
-def gen_arff_row(audiofilename, number_harmonics, normalize=False):
+def gen_arff_row(audiofilename, sortedfft, number_harmonics, normalize=False):
     filename = os.path.split(audiofilename) 
     instrument = filename[1].split('_')
 
-    sortedfft = gen_FFT(audiofilename)
 
     fundamentalAmplitude = sortedfft[0][0] * 1.0
     fundamentalFrequency = sortedfft[0][1] * 1.0
@@ -87,39 +86,6 @@ def gen_arff_row(audiofilename, number_harmonics, normalize=False):
     data_row.extend([instrument])
 
     return data_row 
-
-def get_arffrow_raw(file, number_harmonics):
-    filename = os.path.split(file) 
-    instrument = filename[1].split('_')
-    # SeenInstruments.add(instrument)
-
-    sortedfft = gen_FFT(file)
-    rawDataRow = []
-    for inst in sortedfft[0:number_harmonics]:
-        rawDataRow.extend([round(inst[0], 6), round(inst[1], 6)])
-
-    rawDataRow.extend([instrument])
-
-    return rawDataRow
-
-def get_arffrow_norm(file, number_harmonics):
-    filename = os.path.split(file) 
-    instrument = filename[1].split('_')
-    # SeenInstruments.add(instrument)
-
-    sortedfft = gen_FFT(file)
-
-    normDataRow = []
-    fundamentalAmplitude = sortedfft[0][0] * 1.0
-    fundamentalFrequency = sortedfft[0][1] * 1.0
-
-    for inst in sortedfft[0:number_harmonics]:
-        normDataRow.extend([round(inst[0]/fundamentalAmplitude, 6),
-            round(inst[1]/fundamentalFrequency, 6)])
-
-    normDataRow.extend([instrument])
-
-    return normDataRow 
 
 def wav2arff(fpath, openarffcsv, rawarffcsv, number_harmonics):
     '''
@@ -157,9 +123,10 @@ def wav2arff(fpath, openarffcsv, rawarffcsv, number_harmonics):
 
     # wekaDataRow.extend([toosc])
     # rawDataRow.extend([toosc])
+    sortedfft = gen_FFT(fpath)
 
-    openarffcsv.writerow(gen_arff_row(fpath, number_harmonics, True))
-    rawarffcsv.writerow(gen_arff_row(fpath, number_harmonics, False))
+    openarffcsv.writerow(gen_arff_row(fpath, sortedfft, number_harmonics, True))
+    rawarffcsv.writerow(gen_arff_row(fpath, sortedfft, number_harmonics, False))
 
     return None
 
