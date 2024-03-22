@@ -7,7 +7,7 @@ FULL_WAV_DIR := full_wav/
 # Where to place the dataset file created
 ARFF_OUT_DIR := 'arff'
 # File containing tagged YouTube links
-LINKS_CSV_NAME := 'solo_instrument_video_links.csv'
+LINKS_CSV_NAME := 'smalltest.csv'
 
 # For paralellized scripts, this is the max number of Python instances that will be launched
 MAX_THREADS := 15 

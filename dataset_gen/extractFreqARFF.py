@@ -41,6 +41,86 @@ import tqdm
 # }
 SeenInstruments = set() 
 
+# NEW FUNCS HERE
+def gen_FFT(audio_file):
+    samplerate, data = wavfile.read(audio_file)
+    normdata = list(data)
+    complexfft = fft(normdata)
+    absfft = np.abs(complexfft) # type:ignore
+    
+    # 6/4/2021, 6/6/2021 FFT ANALYSIS:
+    # discard mirror image right of center, sort on amplitude.
+    freqstep = 1    # needed to find fundamental frequency and the harmonics
+    sortedfft = []
+    # sort is pulling in low-frequency pulse noise below 100 Hz,
+    # or possibly low-freq white noise for sine waves, so cut those out:
+    nyquist = samplerate / 2.0      # 3/1/2023
+    perbin = nyquist / int(len(absfft)/2) # 3/1/2023
+    numbinsBelow100 = int(100 / perbin) # 3/1/2023
+    # print("DEBUG numbinsBelow100 ", numbinsBelow100)
+    for ix in range(0, int(len(absfft)/2)):
+        if ix >= numbinsBelow100:   # 3/1/2023
+            sortedfft.append([absfft[ix], freqstep]) 
+        freqstep += 1
+    sortedfft.sort(reverse=True, key=lambda inst : inst[0])
+
+    return sortedfft
+
+def gen_arff_row(audiofilename, number_harmonics, normalize=False):
+    filename = os.path.split(audiofilename) 
+    instrument = filename[1].split('_')
+
+    sortedfft = gen_FFT(audiofilename)
+
+    fundamentalAmplitude = sortedfft[0][0] * 1.0
+    fundamentalFrequency = sortedfft[0][1] * 1.0
+
+    data_row = []
+
+    for inst in sortedfft[0:number_harmonics]:
+        if normalize:
+            data_row.extend([round(inst[0]/fundamentalAmplitude, 6),
+                round(inst[1]/fundamentalFrequency, 6)])
+        else:
+            data_row.extend([round(inst[0], 6), round(inst[1], 6)])
+
+    data_row.extend([instrument])
+
+    return data_row 
+
+def get_arffrow_raw(file, number_harmonics):
+    filename = os.path.split(file) 
+    instrument = filename[1].split('_')
+    # SeenInstruments.add(instrument)
+
+    sortedfft = gen_FFT(file)
+    rawDataRow = []
+    for inst in sortedfft[0:number_harmonics]:
+        rawDataRow.extend([round(inst[0], 6), round(inst[1], 6)])
+
+    rawDataRow.extend([instrument])
+
+    return rawDataRow
+
+def get_arffrow_norm(file, number_harmonics):
+    filename = os.path.split(file) 
+    instrument = filename[1].split('_')
+    # SeenInstruments.add(instrument)
+
+    sortedfft = gen_FFT(file)
+
+    normDataRow = []
+    fundamentalAmplitude = sortedfft[0][0] * 1.0
+    fundamentalFrequency = sortedfft[0][1] * 1.0
+
+    for inst in sortedfft[0:number_harmonics]:
+        normDataRow.extend([round(inst[0]/fundamentalAmplitude, 6),
+            round(inst[1]/fundamentalFrequency, 6)])
+
+    normDataRow.extend([instrument])
+
+    return normDataRow 
+
 def wav2arff(fpath, openarffcsv, rawarffcsv, number_harmonics):
     '''
     Normalize the first Nharmonics of the WAV file in parameter *fpath*
@@ -63,45 +143,23 @@ def wav2arff(fpath, openarffcsv, rawarffcsv, number_harmonics):
     toosc = instrument[0]
     SeenInstruments.add(toosc)
 
-    samplerate, data = wavfile.read(fpath)
-    normdata = list(data)
-    complexfft = fft(normdata)
-    absfft = np.abs(complexfft) # type:ignore
-    
-    # 6/4/2021, 6/6/2021 FFT ANALYSIS:
-    # discard mirror image right of center, sort on amplitude.
-    freqstep = 1    # needed to find fundamental frequency and the harmonics
-    sortedfft = []
-    unsortedFFT = []            # N.P.
-    # sort is pulling in low-frequency pulse noise below 100 Hz,
-    # or possibly low-freq white noise for sine waves, so cut those out:
-    nyquist = samplerate / 2.0      # 3/1/2023
-    perbin = nyquist / int(len(absfft)/2) # 3/1/2023
-    numbinsBelow100 = int(100 / perbin) # 3/1/2023
-    # print("DEBUG numbinsBelow100 ", numbinsBelow100)
-    for ix in range(0, int(len(absfft)/2)):
-        if ix >= numbinsBelow100:   # 3/1/2023
-            sortedfft.append([absfft[ix], freqstep]) 
-        unsortedFFT.append(absfft[ix])          # N.P.
-        freqstep += 1
-    sortedfft.sort(reverse=True, key=lambda inst : inst[0])
-    # ^^^^^ sort on frequencyAmplitude
-    fundamentalAmplitude = sortedfft[0][0] * 1.0
-    fundamentalFrequency = sortedfft[0][1] * 1.0
-    wekaDataRow = []
-    rawDataRow = []
-    for inst in sortedfft[0:number_harmonics]:
-        # round to nearest multiple of the fundamental
-        # Because of aliasing we need to keep some fractional digits.
-        wekaDataRow.extend([round(inst[0]/fundamentalAmplitude, 6),
-            round(inst[1]/fundamentalFrequency, 6)])
-        rawDataRow.extend([round(inst[0], 6), round(inst[1], 6)])
+    # sortedfft = gen_FFT(fpath)
+    # fundamentalAmplitude = sortedfft[0][0] * 1.0
+    # fundamentalFrequency = sortedfft[0][1] * 1.0
+    # wekaDataRow = []
+    # rawDataRow = []
+    # for inst in sortedfft[0:number_harmonics]:
+    #     # round to nearest multiple of the fundamental
+    #     # Because of aliasing we need to keep some fractional digits.
+    #     wekaDataRow.extend([round(inst[0]/fundamentalAmplitude, 6),
+    #         round(inst[1]/fundamentalFrequency, 6)])
+    #     # rawDataRow.extend([round(inst[0], 6), round(inst[1], 6)])
 
-    wekaDataRow.extend([toosc])
-    rawDataRow.extend([toosc])
+    # wekaDataRow.extend([toosc])
+    # rawDataRow.extend([toosc])
 
-    openarffcsv.writerow(wekaDataRow)
-    rawarffcsv.writerow(rawDataRow)
+    openarffcsv.writerow(gen_arff_row(fpath, number_harmonics, True))
+    rawarffcsv.writerow(gen_arff_row(fpath, number_harmonics, False))
 
     return None
 
@@ -158,8 +216,11 @@ def create_arff(audiofolder, number_harmonics, outarff_filename_starter, outdir)
         outfile.writelines(data)
         outfile.close()
 
+
+
+
 __USAGE__ =                                                         \
-'python3 extractFreqARFF.py <Number of Harmonics> <audio dir> <outputfilename (no ext)>'
+'python3 extractFreqARFF.py <Number of Harmonics> <audio dir> <outputfilename)>'
 # 'python extractAudioFreqARFF.py moduleWithWavPaths outARFFname [ Nharmonics ]'
 
 if __name__ == '__main__':
