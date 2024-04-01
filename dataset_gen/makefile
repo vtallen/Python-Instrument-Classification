@@ -7,10 +7,10 @@ FULL_WAV_DIR := full_wav/
 # Where to place the dataset file created
 ARFF_OUT_DIR := 'arff'
 # File containing tagged YouTube links
-LINKS_CSV_NAME := 'smalltest.csv'
+LINKS_CSV_NAME := 'solo_instrument_video_links.csv'
 
 # For paralellized scripts, this is the max number of Python instances that will be launched
-MAX_THREADS := 15 
+MAX_THREADS := 6 
 # The max number of concurent YouTube download streams allowed 
 MAX_DL_STREAMS := 5 
 
@@ -106,8 +106,7 @@ $(AUDIO_FILE_LEN)datasetRaw.arff:
 	@echo "datset_gen:arff"
 	@echo "==================="
 
-	python3 extractFreqARFF.py $(NUM_HARMONICS) normalized_$(AUDIO_FILE_LEN)/ $(AUDIO_FILE_LEN)dataset
-
+	python3 extractFreqARFF.py --multithreaded --threads $(MAX_THREADS) --tempfolder csvtemp/ --infolder $(NORM_DIR) --outfile datasetRaw.arff --harmonics $(NUM_HARMONICS) 
 # Removes bad rows from the dataset
 sanitizedata:
 	@echo "datset_gen:sanitizedata"
