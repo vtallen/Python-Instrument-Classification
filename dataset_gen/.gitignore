@@ -11,4 +11,4 @@ testarff/
 arff/
 .idea/
 __pycache__/
-
+csv_temp/
