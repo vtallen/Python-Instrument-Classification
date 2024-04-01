@@ -48,14 +48,14 @@ def train_model(arff_filename, enabled_instruments = ['all']):
     # Combination of attribute to get the best accuracy
     random_params = {
         'criterion': ['gini', 'entropy'],
-        'max_depth': [None] + list(range(1, 21)),
+        'max_depth': [None] + list(range(1, 100000)),
         'min_samples_split': list(range(2, 500)),
         'min_samples_leaf': list(range(1, 500)),
-        'max_features': ['auto', 'sqrt', 'log2']
+        'max_features': ['sqrt', 'log2']
     }
     
     decision_tree = DecisionTreeClassifier()
-    random_search = RandomizedSearchCV(estimator=decision_tree, param_distributions=random_params, n_iter=100, cv=5, scoring='accuracy')
+    random_search = RandomizedSearchCV(estimator=decision_tree, param_distributions=random_params, n_iter=10000, scoring='accuracy', n_jobs=-1)
     random_search.fit(X_train, y_train)
     best_params = random_search.best_params_
 
@@ -64,7 +64,7 @@ def train_model(arff_filename, enabled_instruments = ['all']):
     best_model = DecisionTreeClassifier(**best_params)
     best_model.fit(X_train, y_train)
     
-    y_predict = classifier.predict(X_test)
+    y_predict = best_model.predict(X_test)
 
     matrix = confusion_matrix(y_test, y_predict)
     matrix_labels = sorted(set(y_test) | set(y_predict))
@@ -115,12 +115,12 @@ def train_model(arff_filename, enabled_instruments = ['all']):
         os.mkdir(MODELS_DIR)
 
     with open(MODELS_DIR + '/' + name + "Model.pkl", 'wb') as f:
-        pickle.dump(classifier, f)
+        pickle.dump(best_model, f)
     
     # Create a bytestring of the model so that it can be directly embedded into a script
     # Using w instaed of wb to write it as something I can just dump into another script straight from the txt file 
     with open(MODELS_DIR + '/' + name + 'ByteStr' + '.txt', 'w') as f:
-        byte_str = pickle.dumps(classifier)
+        byte_str = pickle.dumps(best_model)
         f.write('MODEL=')
         f.write(str(byte_str))
     
