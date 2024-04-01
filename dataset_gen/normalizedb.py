@@ -141,7 +141,7 @@ def make_cmds_arr(filenames, outdir, max_processes, target_dBFS=-20):
 
         # Edge case - if somehow we get a blank array skip this array
         # Would only happnen if my process splitting code failed
-        if len(process_cmd):
+        if len(process_files) == 0:
             continue
 
         process_cmd = append_cmd(process_files, outdir, target_dBFS)

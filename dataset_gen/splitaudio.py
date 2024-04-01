@@ -167,6 +167,10 @@ def make_cmds_arr(filenames, seconds, outdir, max_processes):
 
         process_files = filenames[start_idx:end_idx]
         
+        # Happens if we have already distributed all files we have
+        if len(process_files) == 0:
+            continue
+
         process_cmd = append_cmd(process_files, seconds, outdir) 
         
         cmds.append([process_cmd, len(process_files)])
@@ -210,7 +214,9 @@ def multithread_split(indir, seconds, outdir, max_processes):
     pbar = tqdm.tqdm(desc='Splitting Audio', total=len(filenames))
 
     while cmds:
-        while len(running_processes) < max_processes:
+        # Checking cmds as there is a chance we could try and pop off an empty list, and the outer check to cmds
+        # will not prevent this
+        while len(running_processes) < max_processes and cmds:
             cmd_and_count = cmds.pop()
             # Pass on the selected process along with the number of files it will normalize 
             running_processes.append([subprocess.Popen(cmd_and_count[0], shell=True), cmd_and_count[1]])

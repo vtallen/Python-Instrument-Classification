@@ -2,7 +2,7 @@ VENV := ../.venv/
 LOGFILE := output.log
 
 all: venv
-	python3 gen_model.py arff models violin trumpet tuba flute chello saxophone | tee $(LOGFILE)
+	python3 gen_model.py arff models violin trumpet tuba flute chello | tee $(LOGFILE)
 
 # Check if venv is installed, if not run the makefile in parent dir
 venv:

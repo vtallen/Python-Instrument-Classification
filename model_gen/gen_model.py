@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import confusion_matrix, accuracy_score
+from sklearn.model_selection import RandomizedSearchCV
 from scipy.io import arff
 
 import pickle
@@ -16,7 +17,8 @@ def train_model(arff_filename, enabled_instruments = ['all']):
     df = pd.DataFrame(data)
     
     df.columns = meta.names()
-
+    
+    # Decodes the instrument names from byte strings
     for column in df.columns:
         if df[column].dtype == object:
             df[column] = df[column].str.decode('utf-8')
@@ -25,22 +27,44 @@ def train_model(arff_filename, enabled_instruments = ['all']):
     # print('=================================')
     # print(df.head(10))
     # print() 
-
+    
+    # Removes any instruments that should not be included in the model
     if enabled_instruments != ['all']:
         df = df[df['instrument'].isin(enabled_instruments)]
         # df = df[~df['instrument'].isin(['AG', 'flute', 'piano'])]
-
+    
+    # Extracts the attributes used for training 
     attrib = df.iloc[:, :-1].values
+
+    # Extracts the target attribute
     instrument = df.iloc[:, -1].values
     
+    # Create the test train split
     X_train, X_test, y_train, y_test = train_test_split(attrib, instrument, test_size=0.25, random_state=0)
 
-    classifier = DecisionTreeClassifier(random_state=0, min_samples_leaf=25)
     # classifier = DecisionTreeClassifier(criterion='entropy', random_state=1029, min_samples_leaf=25)
+    
+    # Now we will randomize parameters for the model to find the best
+    # Combination of attribute to get the best accuracy
+    random_params = {
+        'criterion': ['gini', 'entropy'],
+        'max_depth': [None] + list(range(1, 100000)),
+        'min_samples_split': list(range(2, 500)),
+        'min_samples_leaf': list(range(1, 500)),
+        'max_features': ['sqrt', 'log2']
+    }
+    
+    decision_tree = DecisionTreeClassifier()
+    random_search = RandomizedSearchCV(estimator=decision_tree, param_distributions=random_params, n_iter=10000, scoring='accuracy', n_jobs=-1)
+    random_search.fit(X_train, y_train)
+    best_params = random_search.best_params_
 
-    classifier.fit(X_train, y_train)
-
-    y_predict = classifier.predict(X_test)
+    print('Best parameters found for the model:', best_params)
+    
+    best_model = DecisionTreeClassifier(**best_params)
+    best_model.fit(X_train, y_train)
+    
+    y_predict = best_model.predict(X_test)
 
     matrix = confusion_matrix(y_test, y_predict)
     matrix_labels = sorted(set(y_test) | set(y_predict))
@@ -59,6 +83,29 @@ def train_model(arff_filename, enabled_instruments = ['all']):
     print('=================================')
     print(accuracy)
     print()
+
+    # classifier = DecisionTreeClassifier(random_state=0, min_samples_leaf=25)
+    # classifier.fit(X_train, y_train)
+
+    # y_predict = classifier.predict(X_test)
+
+    # matrix = confusion_matrix(y_test, y_predict)
+    # matrix_labels = sorted(set(y_test) | set(y_predict))
+    # matrix_df = pd.DataFrame(matrix, index=matrix_labels, columns=matrix_labels) # type: ignore
+    # print('Filename:', arff_filename)
+    # print('Enabled instruments:', enabled_instruments)
+    # print('=================================')
+    # print()
+    # print('Confusion matrix:')
+    # print('=================================')
+    # print(matrix_df)
+    # print()
+
+    # accuracy = accuracy_score(y_test, y_predict)
+    # print('Accuracy score:')
+    # print('=================================')
+    # print(accuracy)
+    # print()
     
     ossplit = os.path.split(arff_filename)
     name, extension = os.path.splitext(ossplit[1])
@@ -68,12 +115,12 @@ def train_model(arff_filename, enabled_instruments = ['all']):
         os.mkdir(MODELS_DIR)
 
     with open(MODELS_DIR + '/' + name + "Model.pkl", 'wb') as f:
-        pickle.dump(classifier, f)
+        pickle.dump(best_model, f)
     
     # Create a bytestring of the model so that it can be directly embedded into a script
     # Using w instaed of wb to write it as something I can just dump into another script straight from the txt file 
     with open(MODELS_DIR + '/' + name + 'ByteStr' + '.txt', 'w') as f:
-        byte_str = pickle.dumps(classifier)
+        byte_str = pickle.dumps(best_model)
         f.write('MODEL=')
         f.write(str(byte_str))
     
