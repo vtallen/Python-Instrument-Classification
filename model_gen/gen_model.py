@@ -48,14 +48,14 @@ def train_model(arff_filename, enabled_instruments = ['all']):
     # Combination of attribute to get the best accuracy
     random_params = {
         'criterion': ['gini', 'entropy'],
-        'max_depth': [None] + list(range(1, 100000)),
         'min_samples_split': list(range(2, 500)),
         'min_samples_leaf': list(range(1, 500)),
         'max_features': ['sqrt', 'log2']
     }
     
     decision_tree = DecisionTreeClassifier()
-    random_search = RandomizedSearchCV(estimator=decision_tree, param_distributions=random_params, n_iter=10000, scoring='accuracy', n_jobs=-1)
+    random_search = RandomizedSearchCV(estimator=decision_tree, param_distributions=random_params, n_iter=500, scoring='accuracy', n_jobs=-1)
+
     random_search.fit(X_train, y_train)
     best_params = random_search.best_params_
 
