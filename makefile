@@ -18,10 +18,16 @@ all: install
 
 	# Move the model to the cli_tool dir
 	cp model_gen/models/* .
+	
+	# Move the cli tool here
+	cp cli_tool/classinst.py .
 
 	# Call the script to compile the cli_tool (should be in root dir)
-	
+	python3 compile_cli.py
+
 	# Run a test classify using the cli tool
+	#
+	#
 
 	
 	
@@ -29,3 +35,6 @@ clean:
 	@echo "root:clean"
 	@echo "==================="
 	rm -rf $(VENV_DIR)
+	rm -rf *.txt
+	rm -rf *.pkl
+	rm -rf classinst.py

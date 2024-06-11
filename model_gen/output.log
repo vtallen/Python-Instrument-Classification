@@ -4,7 +4,7 @@ tuba
 flute
 chello
 Datasets: ['arff/0.1datasetRaw.arff']
-Best parameters found for the model: {'min_samples_split': 165, 'min_samples_leaf': 21, 'max_features': 'sqrt', 'criterion': 'entropy'}
+Best parameters found for the model: {'min_samples_split': 270, 'min_samples_leaf': 11, 'max_features': 'sqrt', 'criterion': 'gini'}
 Filename: arff/0.1datasetRaw.arff
 Enabled instruments: ['violin', 'trumpet', 'tuba', 'flute', 'chello']
 =================================
@@ -12,13 +12,13 @@ Enabled instruments: ['violin', 'trumpet', 'tuba', 'flute', 'chello']
 Confusion matrix:
 =================================
          chello  flute  trumpet   tuba  violin
-chello    44720   1953     4620   3943    4261
-flute      4012  21590     7779    327    2433
-trumpet    4227   6586    28710   1213    5074
-tuba       5914    116     1815  21047     249
-violin     5224   2626     5995    417   15730
+chello    44969   2038     4468   3836    4186
+flute      4154  21677     7541    296    2473
+trumpet    4433   7481    27469   1230    5197
+tuba       6232    177     1739  20712     281
+violin     5018   2679     5379    368   16548
 
 Accuracy score:
 =================================
-0.6570761936574252
+0.65497230545266
 
