@@ -12,6 +12,8 @@ files to generate an arff file.
 To determine the instrument playing in an audio file, the same process used to create the dataset is used on the target file. A prediction is made for each slice of the file. Then the statistical
 mode is taken of the predictions. This allows for some error in the individual predictions while still producing a correct output
 
+Depending on the instruments included and the decision tree parameters used, the model hits around 60% accuracy on a per sample basis. This is generally enough to correctly predict the instrument of a whole audio file accurately.
+
 ## Project structure
 ---
 **dataset_gen**
